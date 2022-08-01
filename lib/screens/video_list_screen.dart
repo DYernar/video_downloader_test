@@ -53,41 +53,26 @@ class _VideoListScreenState extends State<VideoListScreen> {
   Widget _buildPost(List<VideoData> videos) {
     return Column(
       children: [
-        Stack(
-          children: [
-            CarouselSlider(
-              options: CarouselOptions(
-                enableInfiniteScroll: false,
-                aspectRatio: 1,
-                height: 500,
-                viewportFraction: 1,
-                scrollPhysics: const BouncingScrollPhysics(),
-                onPageChanged: (index, reason) {
-                  setState(() {
-                    currentPage = index;
-                  });
-                },
-              ),
-              items: videos.map((v) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return _buildBody(v.path);
-                  },
-                );
-              }).toList(),
-            ),
-            const Positioned(
-              left: 20,
-              top: 20,
-              child: Text(
-                "This is some text about the video",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
+        CarouselSlider(
+          options: CarouselOptions(
+            enableInfiniteScroll: false,
+            aspectRatio: 1,
+            height: MediaQuery.of(context).size.height * 0.4,
+            viewportFraction: 1,
+            scrollPhysics: const BouncingScrollPhysics(),
+            onPageChanged: (index, reason) {
+              setState(() {
+                currentPage = index;
+              });
+            },
+          ),
+          items: videos.map((v) {
+            return Builder(
+              builder: (BuildContext context) {
+                return _buildBody(v.path);
+              },
+            );
+          }).toList(),
         ),
         SizedBox(height: 5),
         Row(
