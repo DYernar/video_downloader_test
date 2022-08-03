@@ -13,6 +13,7 @@ import '../../util/local_storage/local_storage.dart';
 class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
   final ReceivePort _port = ReceivePort();
   Map<String, int> videoProgress = {};
+  int totalVideoCount = 0;
 
   DownloaderBloc() : super(InitDownloaderState()) {
     IsolateNameServer.removePortNameMapping(PORT_NAME);
@@ -28,7 +29,9 @@ class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
 
     on<NewVideoProgressEvent>((event, emit) {
       emit(LoadingDownloaderState());
-      videoProgress[event.id] = event.progress;
+      if (event.progress > -1) {
+        videoProgress[event.id] = event.progress;
+      }
       emit(NewVideoProgressState(progress: videoProgress));
       var count = 0;
       for (var key in videoProgress.keys) {
@@ -36,7 +39,7 @@ class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
           count++;
         }
       }
-      if (count == videoProgress.length) {
+      if (count == totalVideoCount) {
         add(InitDownloaderEvent());
       }
     });
@@ -48,6 +51,7 @@ class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
         print("START DOWNLOADING");
         videoProgress = {};
         var videoUrls = await _getVideoUrls();
+        totalVideoCount = videoUrls.length;
         for (int i = 0; i < videoUrls.length; i++) {
           var res = await CustomDownloader.downloadVideo(videoUrls[i]);
           videosList.add(VideoData(
@@ -55,6 +59,7 @@ class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
             path: res.path,
             id: res.taskId,
           ));
+          videoProgress[res.taskId] = 0;
         }
         await LocalStorage.saveVideos(videosList);
       } else {
