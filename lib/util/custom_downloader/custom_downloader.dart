@@ -49,9 +49,18 @@ class CustomDownloader {
   static void downloadCallback(
       String id, DownloadTaskStatus status, int progress) {
     final SendPort? send = IsolateNameServer.lookupPortByName(PORT_NAME);
-    print("IM HERE SENDING TO PORT");
+    print("IM HERE SENDING TO PORT $status $progress");
     if (send != null) {
       send.send([id, status, progress]);
+    }
+  }
+
+  static deleteVideo(String path) async {
+    try {
+      var file = File(path);
+      await file.delete();
+    } catch (e) {
+      print("error deleting the file $e path $path");
     }
   }
 }

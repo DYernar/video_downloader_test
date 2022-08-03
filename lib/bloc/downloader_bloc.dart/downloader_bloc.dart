@@ -12,9 +12,10 @@ import '../../util/local_storage/local_storage.dart';
 
 class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
   final ReceivePort _port = ReceivePort();
-  List<VideoData> videosList = [];
+  Map<String, int> videoProgress = {};
 
   DownloaderBloc() : super(InitDownloaderState()) {
+    IsolateNameServer.removePortNameMapping(PORT_NAME);
     var res = IsolateNameServer.registerPortWithName(_port.sendPort, PORT_NAME);
     print("REGISTRATION RES $res");
     _port.listen((dynamic data) {
@@ -26,14 +27,26 @@ class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
     });
 
     on<NewVideoProgressEvent>((event, emit) {
-      emit(NewVideoProgressState(
-          id: event.id, progress: event.progress, videos: videosList));
+      emit(LoadingDownloaderState());
+      videoProgress[event.id] = event.progress;
+      emit(NewVideoProgressState(progress: videoProgress));
+      var count = 0;
+      for (var key in videoProgress.keys) {
+        if (videoProgress[key] == 100) {
+          count++;
+        }
+      }
+      if (count == videoProgress.length) {
+        add(InitDownloaderEvent());
+      }
     });
 
     on<InitDownloaderEvent>((event, emit) async {
       emit(LoadingDownloaderState());
-      videosList = await LocalStorage.getVideos();
+      var videosList = await LocalStorage.getVideos();
       if (videosList.isEmpty) {
+        print("START DOWNLOADING");
+        videoProgress = {};
         var videoUrls = await _getVideoUrls();
         for (int i = 0; i < videoUrls.length; i++) {
           var res = await CustomDownloader.downloadVideo(videoUrls[i]);
@@ -44,13 +57,17 @@ class DownloaderBloc extends Bloc<DownloaderEvent, DownloaderState> {
           ));
         }
         await LocalStorage.saveVideos(videosList);
+      } else {
+        emit(FinishedDownloadingState(videosList));
       }
-      await Future.delayed(const Duration(seconds: 5));
-      emit(FinishedDownloadingState(videosList));
     });
 
     on<ClearDownloadsEvent>((event, emit) async {
       emit(LoadingDownloaderState());
+      var allVids = await LocalStorage.getVideos();
+      for (int i = 0; i < allVids.length; i++) {
+        await CustomDownloader.deleteVideo(allVids[i].path);
+      }
       await LocalStorage.removeVideos();
       emit(InitDownloaderState());
     });

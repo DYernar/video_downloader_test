@@ -163,7 +163,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
         print('Video completed');
       },
       onProgress: (progress, duration) {
-        print('$progress | $duration');
+        // print('$progress | $duration');
       },
     );
   }

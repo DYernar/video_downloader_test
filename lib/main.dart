@@ -45,7 +45,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    IsolateNameServer.removePortNameMapping(PORT_NAME);
+    var res = IsolateNameServer.removePortNameMapping(PORT_NAME);
+    print("REMOVED PORT MAPPING $res");
     super.dispose();
   }
 

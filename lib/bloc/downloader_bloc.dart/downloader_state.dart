@@ -32,11 +32,8 @@ class FinishedDownloadingState extends DownloaderState {
 }
 
 class NewVideoProgressState extends DownloaderState {
-  final String id;
-  final int progress;
-  final List<VideoData> videos;
-  const NewVideoProgressState(
-      {required this.id, required this.progress, required this.videos});
+  final Map<String, int> progress;
+  const NewVideoProgressState({required this.progress});
   @override
-  List<Object> get props => [id, progress];
+  List<Object> get props => [progress];
 }
